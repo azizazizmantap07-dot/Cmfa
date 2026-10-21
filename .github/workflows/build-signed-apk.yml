@@ -1,0 +1,100 @@
+name: Build Signed APK
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Ensure Clash core (mihomo) is present
+        run: |
+          set -e
+          CLASH_DIR="core/src/foss/golang/clash"
+          if [ ! -f "$CLASH_DIR/go.mod" ]; then
+            echo "Submodule empty — cloning MetaCubeX/mihomo (Alpha)..."
+            rm -rf "$CLASH_DIR"
+            git clone --depth 1 -b Alpha https://github.com/MetaCubeX/mihomo.git "$CLASH_DIR"
+          fi
+          test -f "$CLASH_DIR/go.mod"
+          echo "Clash core OK:"
+          head -5 "$CLASH_DIR/go.mod"
+          ls "$CLASH_DIR" | head
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          # Match upstream CMFA; fall back to stable if custom URL fails
+          go-version: "1.22.12"
+
+      - name: Apply Go patches (optional)
+        continue-on-error: true
+        run: |
+          if [ -d .github/patch ]; then
+            cd "$(go env GOROOT)" || exit 0
+            for p in "$GITHUB_WORKSPACE"/.github/patch/*.patch; do
+              [ -f "$p" ] && patch -p1 < "$p" || true
+            done
+          fi
+
+      - name: Restore signing keystore
+        env:
+          SIGNING_KEYSTORE_BASE64: ${{ secrets.SIGNING_KEYSTORE_BASE64 }}
+          SIGNING_STORE_PASSWORD: ${{ secrets.SIGNING_STORE_PASSWORD }}
+          SIGNING_KEY_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
+          SIGNING_KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD }}
+        run: |
+          set -e
+          if [ -n "$SIGNING_KEYSTORE_BASE64" ]; then
+            echo "$SIGNING_KEYSTORE_BASE64" | base64 -d > release.keystore
+            echo "Keystore restored from secret"
+          elif [ -f release.keystore ]; then
+            echo "Using release.keystore from repository"
+          else
+            echo "::error::No keystore: set SIGNING_KEYSTORE_BASE64 secret or commit release.keystore"
+            exit 1
+          fi
+          {
+            echo "keystore.password=${SIGNING_STORE_PASSWORD}"
+            echo "key.alias=${SIGNING_KEY_ALIAS}"
+            echo "key.password=${SIGNING_KEY_PASSWORD}"
+          } > signing.properties
+          if [ -z "$SIGNING_STORE_PASSWORD" ]; then
+            echo "::error::SIGNING_STORE_PASSWORD secret is empty"
+            exit 1
+          fi
+
+      - name: Ensure Gradle wrapper is executable
+        run: |
+          chmod +x gradlew
+          ls -la gradlew
+          ./gradlew --version
+
+      - name: Build Meta Release (signed)
+        run: ./gradlew --no-daemon app:assembleMetaRelease
+
+      - name: Upload APK artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: cmfa-meta-release-apk
+          path: app/build/outputs/apk/meta/release/*.apk
+          if-no-files-found: error

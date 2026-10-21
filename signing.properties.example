@@ -1,0 +1,5 @@
+# Copy this file to signing.properties and fill in your values.
+# signing.properties is gitignored and must NOT be committed if you use a private key.
+keystore.password=YOUR_STORE_PASSWORD
+key.alias=YOUR_KEY_ALIAS
+key.password=YOUR_KEY_PASSWORD

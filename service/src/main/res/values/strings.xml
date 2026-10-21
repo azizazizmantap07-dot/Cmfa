@@ -1,0 +1,31 @@
+<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="PluralsCandidate">
+    <!-- from https://github.com/shadowsocks/shadowsocks-android/blob/master/core/src/main/res/values/strings.xml -->
+    <string name="clash_notification_content" translatable="false">"%1$s↑\t%2$s↓"</string>
+
+    <string name="clash_service_status_channel">Clash Status</string>
+    <string name="profile_service_status">Profile Service Status</string>
+    <string name="profile_process_status">Profile Processing Status</string>
+    <string name="profile_process_result">Profile Process Result</string>
+    <string name="update_successfully">Update Successfully</string>
+    <string name="update_failure">Update Failure</string>
+    <string name="format_update_complete">Update %s completed</string>
+    <string name="format_update_failure">Update %1$s: %2$s</string>
+    <string name="running">Running</string>
+    <string name="loading">Loading</string>
+    <string name="clash_meta_for_android">Clash Meta for Android</string>
+    <string name="profiles_and_providers">Profiles and Providers</string>
+    <string name="configuration_yaml">Configuration.yaml</string>
+    <string name="provider_files">Provider Files</string>
+    <string name="profile_updater">Profile Updater</string>
+    <string name="profile_updating">Profile Updating</string>
+
+    <string name="airplane_recovery_channel">Airplane recovery</string>
+    <string name="airplane_recovery_channel_desc">Alerts when airplane mode is toggled to recover connectivity</string>
+    <string name="airplane_recovery_notify_title">Airplane recovery</string>
+    <string name="airplane_recovery_notify_started">Toggling airplane mode (attempt %1$d). Reason: %2$s</string>
+    <string name="airplane_recovery_notify_finished">Airplane toggle finished (attempt %1$d). Waiting for proxies to recover.</string>
+    <string name="airplane_recovery_notify_failed">Failed to enable airplane mode via Shizuku+.</string>
+    <string name="airplane_recovery_notify_stuck">Airplane mode is still on. Please turn it off manually.</string>
+    <string name="airplane_recovery_notify_shizuku">Shizuku+ is not ready. Open Shizuku+ and grant permission, then try again.</string>
+
+</resources>
